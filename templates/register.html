@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - ObesiTrack</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .register-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 450px;
+            width: 100%;
+            margin: 20px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo i {
+            font-size: 3rem;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .logo h2 {
+            color: #28a745;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            padding: 15px 20px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        
+        .btn-outline-primary {
+            border-radius: 15px;
+            border: 2px solid #2c5aa0;
+            padding: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .strength-weak { background-color: #dc3545; width: 33%; }
+        .strength-medium { background-color: #ffc107; width: 66%; }
+        .strength-strong { background-color: #28a745; width: 100%; }
+        
+        .password-requirements {
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin: 2px 0;
+        }
+        
+        .requirement i {
+            width: 15px;
+            margin-right: 8px;
+        }
+        
+        .requirement.valid {
+            color: #28a745;
+        }
+        
+        .requirement.invalid {
+            color: #dc3545;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <!-- Logo -->
+        <div class="logo">
+            <i class="fas fa-user-plus"></i>
+            <h2>Inscription</h2>
+            <p class="text-muted">Créez votre compte ObesiTrack</p>
+        </div>
+        
+        <!-- Alerts -->
+        <div id="alertContainer"></div>
+        
+        <!-- Register Form -->
+        <form id="registerForm">
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope me-2"></i>Email
+                </label>
+                <input type="email" class="form-control" id="email" required>
+                <div class="invalid-feedback" id="emailError"></div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Mot de passe
+                </label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <div class="password-strength" id="passwordStrength"></div>
+                
+                <div class="password-requirements">
+                    <div class="requirement" id="req-length">
+                        <i class="fas fa-times"></i>
+                        Au moins 6 caractères
+                    </div>
+                    <div class="requirement" id="req-letter">
+                        <i class="fas fa-times"></i>
+                        Au moins une lettre
+                    </div>
+                    <div class="requirement" id="req-number">
+                        <i class="fas fa-times"></i>
+                        Au moins un chiffre
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="confirmPassword" class="form-label">
+                    <i class="fas fa-lock me-2"></i>Confirmer le mot de passe
+                </label>
+                <input type="password" class="form-control" id="confirmPassword" required>
+                <div class="invalid-feedback" id="confirmPasswordError"></div>
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="acceptTerms" required>
+                <label class="form-check-label" for="acceptTerms">
+                    J'accepte les <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">conditions d'utilisation</a>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-success w-100 mb-3" id="registerBtn" disabled>
+                <span class="register-text">
+                    <i class="fas fa-user-plus me-2"></i>Créer mon compte
+                </span>
+                <span class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
+            </button>
+            
+            <div class="text-center">
+                <p class="mb-0">
+                    Déjà un compte ? <a href="{{ url_for('auth.login') }}" class="text-primary">Connectez-vous</a>
+                </p>
+            </div>
+        </form>
+    </div>

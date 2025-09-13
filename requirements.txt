@@ -1,0 +1,10 @@
+fastapi==0.116.1
+uvicorn==0.35.0
+pydantic[email]==2.11.7
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+python-dotenv
+psycopg2-binary
+pydantic-settings
+Jinja2

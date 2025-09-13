@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - ObesiTrack</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .main-container {
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 20px;
+            border: none;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: scale(1.05);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .user-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #2c5aa0;
+            transition: all 0.3s ease;
+        }
+        
+        .user-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .user-email {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #2c5aa0;
+        }
+        
+        .user-info {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .badge-admin {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .badge-user {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .badge-inactive {
+            background: #6c757d;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        
+        .btn-action {
+            border-radius: 15px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            margin: 2px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .search-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            border-radius: 25px;
+            border: 2px solid #e9ecef;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .search-input:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .pagination {
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .page-link {
+            border-radius: 10px;
+            margin: 0 5px;
+            border: none;
+            color: #dc3545;
+        }
+        
+        .page-link:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .prediction-count {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            color: #495057;
+        }
+        
+        .danger-zone {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .nav-tabs {
+            border: none;
+            margin-bottom: 20px;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 15px 15px 0 0;
+            background: rgba(255, 255, 255, 0.5);
+            color: #495057;
+            margin-right: 5px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #dc3545;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-heartbeat me-2"></i>
+                ObesiTrack
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="app_obesity.html">
+                            <i class="fas fa-calculator me-1"></i>Prédiction
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="history.html">
+                            <i class="fas fa-history me-1"></i>Historique
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="admin.html">
+                            <i class="fas fa-cogs me-1"></i>Administration
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown" id="userMenu">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield me-1"></i>
+                            <span id="userEmail">Admin</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="app_obesity.html">
+                                <i class="fas fa-calculator me-2"></i>Nouvelle prédiction
+                            </a></li>
+                            <li><a class="dropdown-item" href="history.html">
+                                <i class="fas fa-history me-2"></i>Mon historique
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alerts Container -->
+    <div class="container mt-3">
+        <div id="alertContainer"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container main-container">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>
+                            Panel d'Administration
+                        </h3>
+                        <p class="mb-0 opacity-75">Gestion des utilisateurs et statistiques du système</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques Dashboard -->
+        <div class="row mb-4" id="statsSection">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="totalUsers">-</div>
+                    <div class="stats-label">Utilisateurs totaux</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #fd7e14, #e83e8c);">
+                    <div class="stats-number" id="totalPredictions">-</div>
+                    <div class="stats-label">Prédictions totales</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                    <div class="stats-number" id="activeUsers">-</div>
+                    <div class="stats-label">Utilisateurs actifs</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8, #6610f2);">
+                    <div class="stats-number" id="recentUsers">-</div>
+                    <div class="stats-label">Nouveaux (7j)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-panel" type="button">
+                    <i class="fas fa-users me-2"></i>Gestion des Utilisateurs
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics-panel" type="button">
+                    <i class="fas fa-chart-bar me-2"></i>Analytiques
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system-panel" type="button">
+                    <i class="fas fa-server me-2"></i>Système
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="adminTabsContent">
+            <!-- Users Management Panel -->
+            <div class="tab-pane fade show active" id="users-panel">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-users me-2"></i>Liste des Utilisateurs
+                                </h5>
+                                <div>
+                                    <button class="btn btn-outline-light btn-sm" onclick="refreshUsers()">
+                                        <i class="fas fa-sync-alt me-1"></i>Actualiser
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body">
+                                <!-- Search Box -->
+                                <div class="search-box">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control search-input" id="searchUsers" 
+                                                   placeholder="Rechercher par email..." onkeyup="searchUsers()">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select class="form-select" id="filterUsers" onchange="filterUsers()">
+                                                <option value="all">Tous les utilisateurs</option>
+                                                <option value="active">Utilisateurs actifs</option>
+                                                <option value="inactive">Utilisateurs inactifs</option>
+                                                <option value="admin">Administrateurs</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Loading State -->
+                                <div id="usersLoadingState" class="loading">
+                                    <div class="spinner-border text-danger mb-3" role="status">
+                                        <span class="visually-hidden">Chargement...</span>
+                                    </div>
+                                    <p>Chargement des utilisateurs...</p>
+                                </div>
+                                
+                                <!-- Users List -->
+                                <div id="usersList"></div>
+                                
+                                <!-- Pagination -->
+                                <nav id="usersPaginationNav" style="display: none;">
+                                    <ul class="pagination" id="usersPaginationList">
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Panel -->
+            <div class="tab-pane fade" id="analytics-panel">
+                <div class="row">
+                    <!-- Top Users -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-trophy me-2"></i>Utilisateurs les Plus Actifs
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="topUsersList">
+                                    <div class="loading">
+                                        <div class="spinner-border text-danger" role="status"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Distribution -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-chart-pie me-2"></i>Répartition des Catégories
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="categoryDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Predictions -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-chart-line me-2"></i>Prédictions par Jour (30 derniers jours)
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="dailyPredictionsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Panel -->
+            <div class="tab-pane fade" id="system-panel">
+                <div class="row">
+                    <!-- Model Info -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-brain me-2"></i>Informations du Modèle IA
+                                </h6>
+                            </div>
+                            <div class="card-body" id="modelInfo">
+                                <div class="loading">
+                                    <div class="spinner-border text-danger" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-heart me-2"></i>État du Système
+                                </h6>
+                            </div>
+                            <div class="card-body" id="systemHealth">
+                                <div class="loading">
+                                    <div class="spinner-border text-danger" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Database Stats -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-database me-2"></i>Statistiques de la Base de Données
+                                </h6>
+                            </div>
+                            <div class="card-body" id="databaseStats">
+                                <div class="loading">
+                                    <div class="spinner-border text-danger" role="status"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-circle me-2"></i>
+                        Détails de l'Utilisateur
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="userModalBody">
+                    <!-- Contenu dynamique -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="toggleUserStatus()" id="toggleStatusBtn">
+                        <i class="fas fa-toggle-on me-2"></i>Changer le statut
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="toggleAdminStatus()" id="toggleAdminBtn">
+                        <i class="fas fa-user-cog me-2"></i>Changer les droits
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteUser()">
+                        <i class="fas fa-trash me-2"></i>Supprimer
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmer la Suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+                    <div class="danger-zone">
+                        <h6 class="text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Attention
+                        </h6>
+                        <p class="mb-0">Cette action est irréversible et supprimera :</p>
+                        <ul>
+                            <li>Le compte utilisateur</li>
+                            <li>Toutes ses prédictions</li>
+                            <li>Tout son historique</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="deleteUser()">
+                        <i class="fas fa-trash me-2"></i>Oui, supprimer
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let users = [];
+        let filteredUsers = [];
+        let dashboardStats = {};
+        let selectedUserId = null;
+        let currentPage = 1;
+        let categoryChart = null;
+        let dailyChart = null;
+
+        // Vérifier l'authentification et les droits admin
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAdminAuth()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            loadDashboard();
+            loadUsers();
+        });
+
+        function checkAdminAuth() {
+            const token = localStorage.getItem('access_token');
+            const userInfo = localStorage.getItem('user_info');
+            
+            if (token && userInfo) {
+                const user = JSON.parse(userInfo);
+                if (user.is_admin) {
+                    document.getElementById('userEmail').textContent = user.email;
+                    return true;
+                } else {
+                    showAlert('Accès refusé : droits administrateur requis', 'danger');
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        async function loadDashboard() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('/admin/stats/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    dashboardStats = await response.json();
+                    updateDashboardStats();
+                    createAnalyticsCharts();
+                    loadSystemInfo();
+                } else {
+                    throw new Error('Erreur lors du chargement du dashboard');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAlert('Erreur lors du chargement du dashboard', 'danger');
+            }
+        }
+
+        function updateDashboardStats() {
+            const stats = dashboardStats.overview;
+            document.getElementById('totalUsers').textContent = stats.total_users;
+            document.getElementById('totalPredictions').textContent = stats.total_predictions;
+            document.getElementById('activeUsers').textContent = stats.active_users;
+            document.getElementById('recentUsers').textContent = stats.recent_users;
+        }
+
+        async function loadUsers(page = 1, search = '') {
+            try {
+                const token = localStorage.getItem('access_token');
+                let url = `/admin/users?page=${page}&per_page=10`;
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    users = await response.json();
+                    filteredUsers = users;
+                    displayUsers();
+                    document.getElementById('usersLoadingState').style.display = 'none';
+                } else {
+                    throw new Error('Erreur lors du chargement des utilisateurs');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAlert('Erreur lors du chargement des utilisateurs', 'danger');
+                document.getElementById('usersLoadingState').innerHTML = 
+                    '<p class="text-danger">Erreur lors du chargement</p>';
+            }
+        }
+
+        function displayUsers() {
+            const container = document.getElementById('usersList');
+            
+            if (filteredUsers.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Aucun utilisateur trouvé</p>';
+                return;
+            }
+
+            const usersHTML = filteredUsers.map(user => {
+                const joinDate = new Date(user.created_at).toLocaleDateString('fr-FR');
+                const statusBadge = user.is_active ? 
+                    '<span class="badge-user">Actif</span>' : 
+                    '<span class="badge-inactive">Inactif</span>';
+                const roleBadge = user.is_admin ? 
+                    '<span class="badge-admin">Admin</span>' : 
+                    '<span class="badge-user">Utilisateur</span>';
+                
+                return `
+                    <div class="user-card" onclick="showUserDetails(${user.id})">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="user-email">${user.email}</div>
+                                <div class="user-info">
+                                    <i class="fas fa-calendar me-1"></i>Inscrit le ${joinDate}
+                                </div>
+                                <div class="mt-2">
+                                    ${roleBadge}
+                                    ${statusBadge}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-outline-primary btn-action" onclick="event.stopPropagation(); showUserDetails(${user.id})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-outline-success btn-action" onclick="event.stopPropagation(); toggleUserStatus(${user.id})">
+                                    <i class="fas fa-toggle-${user.is_active ? 'on' : 'off'}"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-action" onclick="event.stopPropagation(); confirmDeleteUser(${user.id})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = usersHTML;
+        }
+
+        async function showUserDetails(userId) {
+            selectedUserId = userId;
+            
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`/admin/users/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    displayUserDetails(user);
+                } else {
+                    throw new Error('Erreur lors du chargement des détails');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showAlert('Erreur lors du chargement des détails utilisateur', 'danger');
+            }
+        }
+
+        function displayUserDetails(user) {
+            const joinDate = new Date(user.created_at).toLocaleDateString('fr-FR');
+            const lastUpdate = new Date(user.updated_at).toLocaleDateString('fr-FR');
+            const predictionsCount = user.predictions ? user.predictions.length : 0;
+            
+            const modalBody = document.getElementById('userModalBody');
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-
