@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prédiction d'Obésité - ObesiTrack</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .main-container {
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #2c5aa0, #4a90e2);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 20px;
+            border: none;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #2c5aa0;
+            box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2c5aa0, #4a90e2);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(44, 90, 160, 0.4);
+        }
+        
+        .prediction-result {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+        }
+        
+        .bmi-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .confidence-bar {
+            background: rgba(255, 255, 255, 0.3);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .confidence-fill {
+            background: rgba(255, 255, 255, 0.9);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+        
+        .feature-info {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .risk-badge {
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+        
+        .risk-low { background-color: #d4edda; color: #155724; }
+        .risk-moderate { background-color: #fff3cd; color: #856404; }
+        .risk-high { background-color: #f8d7da; color: #721c24; }
+        .risk-critical { background-color: #721c24; color: white; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-heartbeat me-2"></i>
+                ObesiTrack
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="app_obesity.html">
+                            <i class="fas fa-calculator me-1"></i>Prédiction
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="history.html">
+                            <i class="fas fa-history me-1"></i>Historique
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown" id="userMenu">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>
+                            <span id="userEmail">Utilisateur</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="history.html">
+                                <i class="fas fa-history me-2"></i>Mon historique
+                            </a></li>
+                            <li><a class="dropdown-item" href="admin.html" id="adminLink" style="display: none;">
+                                <i class="fas fa-cogs me-2"></i>Administration
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alerts Container -->
+    <div class="container mt-3">
+        <div id="alertContainer"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container main-container">
+        <div class="row">
+            <!-- Formulaire de prédiction -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-calculator me-2"></i>
+                            Prédiction d'Obésité par IA
+                        </h4>
+                        <p class="mb-0 opacity-75">Remplissez vos informations pour obtenir une analyse personnalisée</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="predictionForm">
+                            <!-- Informations personnelles -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-primary"><i class="fas fa-user me-2"></i>Informations personnelles</h5>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="age" class="form-label">
+                                        <i class="fas fa-birthday-cake me-1"></i>Âge (années)
+                                    </label>
+                                    <input type="number" class="form-control" id="age" min="1" max="120" required>
+                                    <div class="feature-info">Entre 1 et 120 ans</div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="height" class="form-label">
+                                        <i class="fas fa-ruler-vertical me-1"></i>Taille (mètres)
+                                    </label>
+                                    <input type="number" class="form-control" id="height" step="0.01" min="0.5" max="2.5" required>
+                                    <div class="feature-info">Ex: 1.75 pour 1m75</div>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="weight" class="form-label">
+                                        <i class="fas fa-weight me-1"></i>Poids (kg)
+                                    </label>
+                                    <input type="number" class="form-control" id="weight" min="20" max="300" required>
+                                    <div class="feature-info">Entre 20 et 300 kg</div>
+                                </div>
+                            </div>
+
+                            <!-- Habitudes alimentaires -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-success"><i class="fas fa-apple-alt me-2"></i>Habitudes alimentaires</h5>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="fcvc" class="form-label">
+                                        <i class="fas fa-carrot me-1"></i>Consommation de légumes (FCVC)
+                                    </label>
+                                    <input type="number" class="form-control" id="fcvc" step="0.1" min="1" max="3" required>
+                                    <div class="feature-info">1 = Jamais, 2 = Parfois, 3 = Toujours</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="ncp" class="form-label">
+                                        <i class="fas fa-utensils me-1"></i>Repas principaux/jour (NCP)
+                                    </label>
+                                    <input type="number" class="form-control" id="ncp" step="0.1" min="1" max="4" required>
+                                    <div class="feature-info">Nombre de repas principaux par jour</div>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="caec" class="form-label">
+                                        <i class="fas fa-cookie-bite me-1"></i>Grignotage entre les repas
+                                    </label>
+                                    <select class="form-select" id="caec" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="no">Jamais</option>
+                                        <option value="Sometimes">Parfois</option>
+                                        <option value="Frequently">Fréquemment</option>
+                                        <option value="Always">Toujours</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Activité physique -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-warning"><i class="fas fa-running me-2"></i>Activité physique</h5>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="faf" class="form-label">
+                                        <i class="fas fa-dumbbell me-1"></i>Fréquence sport/semaine (FAF)
+                                    </label>
+                                    <input type="number" class="form-control" id="faf" step="0.1" min="0" max="3" required>
+                                    <div class="feature-info">0 = Jamais, 1 = 1-2 fois, 2 = 2-4 fois, 3 = 4+ fois</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="tue" class="form-label">
+                                        <i class="fas fa-mobile-alt me-1"></i>Temps écrans/jour (TUE)
+                                    </label>
+                                    <input type="number" class="form-control" id="tue" step="0.1" min="0" max="2" required>
+                                    <div class="feature-info">0 = 0-2h, 1 = 3-5h, 2 = Plus de 5h</div>
+                                </div>
+                            </div>
+
+                            <!-- Mode de vie -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="text-info"><i class="fas fa-lifestyle me-2"></i>Mode de vie</h5>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="calc" class="form-label">
+                                        <i class="fas fa-wine-glass me-1"></i>Consommation d'alcool
+                                    </label>
+                                    <select class="form-select" id="calc" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="no">Jamais</option>
+                                        <option value="Sometimes">Parfois</option>
+                                        <option value="Frequently">Fréquemment</option>
+                                        <option value="Always">Toujours</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="mtrans" class="form-label">
+                                        <i class="fas fa-car me-1"></i>Moyen de transport principal
+                                    </label>
+                                    <select class="form-select" id="mtrans" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="Walking">Marche</option>
+                                        <option value="Bike">Vélo</option>
+                                        <option value="Public_Transportation">Transport public</option>
+                                        <option value="Automobile">Voiture</option>
+                                        <option value="Motorbike">Moto</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Bouton de prédiction -->
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-brain me-2"></i>
+                                    Analyser avec l'IA
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Résultats -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Résultats de l'analyse
+                        </h5>
+                    </div>
+                    <div class="card-body text-center" id="resultContainer">
+                        <div id="noResultsMessage">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Remplissez le formulaire pour obtenir votre analyse personnalisée</p>
+                        </div>
+                        
+                        <div id="resultsDisplay" style="display: none;">
+                            <div id="predictionCategory" class="mb-3">
+                                <h4 id="categoryText"></h4>
+                                <span id="riskBadge" class="risk-badge"></span>
+                            </div>
+                            
+                            <div id="bmiDisplay" class="bmi-indicator">
+                                <h6>Votre IMC</h6>
+                                <h3 id="bmiValue"></h3>
+                            </div>
+                            
+                            <div id="confidenceDisplay">
+                                <h6>Niveau de confiance</h6>
+                                <div class="confidence-bar">
+                                    <div id="confidenceFill" class="confidence-fill"></div>
+                                </div>
+                                <span id="confidenceText"></span>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="probabilityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <h5>Analyse en cours...</h5>
+            <p class="text-muted">L'IA effectue son analyse. Veuillez patienter.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/app_obesity.js') }}"></script>
+</body>
+</html>
