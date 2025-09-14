@@ -39,7 +39,7 @@ class ObesityPredictor:
 
     def _load_model_assets(self):
         """Load the trained model and encoders from files."""
-        models_dir = Path("app/ml")
+        models_dir = Path(__file__).parent.resolve()
         model_path = models_dir / "random_forest_model.pkl"
         feature_encoder_path = models_dir / "feature_encoder.pkl"
         label_encoder_path = models_dir / "label_encoder.pkl"
