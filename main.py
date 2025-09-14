@@ -47,10 +47,10 @@ model = None
 try:
     from app.ml.predictor import load_model # Corrected import path
     model = load_model()
-    if model:
+    if model and model.model:
         logger.info("✅ ML model loaded successfully")
     else:
-        logger.warning("⚠️ ML model file missing, using fallback...")
+        logger.warning("⚠️ ML model file missing or failed to load, using fallback...")
 except ImportError as e:
     logger.warning(f"⚠️ ML model module not found: {e}")
 except Exception as e:
