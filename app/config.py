@@ -8,7 +8,11 @@ import os
 class Settings(BaseSettings):
 
     database_url: str = Field(
+<<<<<<< HEAD
         default="sqlite:///./obesittrack.db",
+=======
+        default="postgresql://postgres:Chah%4015996@localhost:5432/obesittrack",
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
         env="DATABASE_URL"
     )
 
@@ -33,4 +37,13 @@ postgres_password: str = Field(default="postgres123", env="POSTGRES_PASSWORD")
     
 class Config:
     env_file = ".env"
+<<<<<<< HEAD
     case_sensitive = False
+=======
+    case_sensitive = False
+
+
+settings = Settings()
+
+
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57

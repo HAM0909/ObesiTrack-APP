@@ -1,13 +1,18 @@
+<<<<<<< HEAD
 import pickle
 from pathlib import Path
 import pandas as pd
 from typing import Dict, Any
 import logging
 import numpy as np
+=======
+import logging
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 
 logger = logging.getLogger(__name__)
 
 class ObesityPredictor:
+<<<<<<< HEAD
     """
     Obesity prediction model wrapper.
     This class is a singleton that loads a trained model and encoders.
@@ -23,6 +28,9 @@ class ObesityPredictor:
         'Gender', 'family_history_with_overweight', 'FAVC', 'FCVC', 
         'NCP', 'CAEC', 'SMOKE', 'CH2O', 'SCC', 'FAF', 'TUE', 'CALC', 'MTRANS'
     ]
+=======
+    _instance = None
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 
     def __new__(cls):
         if cls._instance is None:
@@ -33,6 +41,7 @@ class ObesityPredictor:
     def __init__(self):
         if self._initialized:
             return
+<<<<<<< HEAD
         
         self._load_model_assets()
         self._initialized = True
@@ -157,5 +166,27 @@ class ObesityPredictor:
             return ["Consult with a healthcare professional for advice on healthy weight gain."]
 
 def load_model() -> ObesityPredictor:
+=======
+        self.model = "mock_model"
+        self.feature_names = ["Age", "Height", "Weight", "FCVC", "NCP", "CAEC", "FAF", "TUE", "CALC", "MTRANS"]
+        self.target_classes = ["Insufficient_Weight", "Normal_Weight", "Overweight_Level_I", "Overweight_Level_II", "Obesity_Type_I", "Obesity_Type_II", "Obesity_Type_III"]
+        self.label_encoders = {}
+        self.is_loaded = True
+        self._initialized = True
+        logger.info("✅ Mock ML model initialized.")
+
+    def predict(self, input_data):
+        logger.info(f"Predicting with input: {input_data}")
+        return {
+            "prediction": "Normal_Weight",
+            "probability": 0.85,
+            "confidence": 0.85,
+            "bmi": 24.0,
+            "risk_level": "Low",
+            "recommendations": ["Keep up the good work!"]
+        }
+
+def load_model():
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
     """Loads the singleton predictor instance."""
     return ObesityPredictor()

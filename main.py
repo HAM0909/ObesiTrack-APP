@@ -7,8 +7,12 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+<<<<<<< HEAD
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse
+=======
+from fastapi.responses import JSONResponse
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 
 # Load environment variables (load_dotenv() returns True/False but we ignore)
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")  # Explicit path
@@ -47,15 +51,35 @@ model = None
 try:
     from app.ml.predictor import load_model # Corrected import path
     model = load_model()
+<<<<<<< HEAD
     if model and model.model:
         logger.info("✅ ML model loaded successfully")
     else:
         logger.warning("⚠️ ML model file missing or failed to load, using fallback...")
+=======
+    if model:
+        logger.info("✅ ML model loaded successfully")
+    else:
+        logger.warning("⚠️ ML model file missing, using fallback...")
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 except ImportError as e:
     logger.warning(f"⚠️ ML model module not found: {e}")
 except Exception as e:
     logger.error(f"❌ ML model initialization failed: {e}")
 
+<<<<<<< HEAD
+=======
+# --- Static Files Setup ---
+STATIC_DIR = PROJECT_ROOT / "static"
+if STATIC_DIR.exists():
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(STATIC_DIR)),
+        name="static",
+    )
+    logger.info(f"✅ Static files mounted from {STATIC_DIR}")
+
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title=os.getenv("APP_NAME", "ObesiTrack"),
@@ -65,6 +89,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+<<<<<<< HEAD
 # --- Static Files Setup ---
 STATIC_DIR = PROJECT_ROOT / "static"
 TEMPLATES_DIR = PROJECT_ROOT / "templates"
@@ -78,6 +103,8 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 logger.info(f"✅ Static files mounted from {STATIC_DIR}")
 logger.info(f"✅ Templates configured from {TEMPLATES_DIR}")
 
+=======
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 # --- CORS Configuration ---
 APP_ORIGINS = [
     "http://localhost:3000",  # React default
@@ -95,20 +122,31 @@ app.add_middleware(
 # --- Router Imports (Graceful Failure) ---
 ROUTERS = [
     ("auth", "Authentication"),
+<<<<<<< HEAD
     ("prediction", "Predictions"),
     ("metrics", "Dashboard"),
     ("pages", "Pages"),
+=======
+    ("register", "Users"),  # Changed 'users' to 'register'
+    ("prediction", "Predictions"), # Changed 'predictions' to 'prediction'
+    ("metrics", "Dashboard"), # Changed 'dashboard' to 'metrics'
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
 ]
 
 for router_path, tag in ROUTERS:
     try:
         module = __import__(f"app.routers.{router_path}", fromlist=["router"])
+<<<<<<< HEAD
         if router_path == "pages":
             app.include_router(module.router, tags=[tag])
             logger.info(f"✅ Router loaded: /{router_path}")
         else:
             app.include_router(module.router, prefix=f"/api/{router_path}", tags=[tag])
             logger.info(f"✅ Router loaded: /api/{router_path}")
+=======
+        app.include_router(module.router, prefix=f"/api/{router_path}", tags=[tag])
+        logger.info(f"✅ Router loaded: /api/{router_path}")
+>>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
     except ImportError as e:
         logger.warning(f"⚠️ Router {router_path} not found: {e}")
     except Exception as e:
