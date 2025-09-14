@@ -40,35 +40,33 @@ class ObesityPredictor:
     def _load_model_assets(self):
         """Load the trained model and encoders from files."""
         models_dir = Path("app/ml")
-        
         model_path = models_dir / "model.pkl"
         feature_encoder_path = models_dir / "feature_encoder.pkl"
         label_encoder_path = models_dir / "label_encoder.pkl"
-        
+
         try:
-            if model_path.exists():
-                with open(model_path, 'rb') as f:
-                    self.model = pickle.load(f)
-                logger.info(f"✅ Model loaded from {model_path}")
-            else:
-                logger.warning(f"⚠️ Model file not found at {model_path}")
-
-            if feature_encoder_path.exists():
-                with open(feature_encoder_path, 'rb') as f:
-                    self.feature_encoder = pickle.load(f)
-                logger.info(f"✅ Feature encoder loaded from {feature_encoder_path}")
-            else:
-                logger.warning(f"⚠️ Feature encoder not found at {feature_encoder_path}")
-
-            if label_encoder_path.exists():
-                with open(label_encoder_path, 'rb') as f:
-                    self.label_encoder = pickle.load(f)
-                logger.info(f"✅ Label encoder loaded from {label_encoder_path}")
-            else:
-                logger.warning(f"⚠️ Label encoder not found at {label_encoder_path}")
+            with open(model_path, 'rb') as f:
+                self.model = pickle.load(f)
+            logger.info(f"✅ Model loaded from {model_path}")
         except Exception as e:
-            logger.error(f"❌ Error loading ML assets: {e}")
+            logger.error(f"❌ Error loading model.pkl: {e}", exc_info=True)
             self.model = None
+
+        try:
+            with open(feature_encoder_path, 'rb') as f:
+                self.feature_encoder = pickle.load(f)
+            logger.info(f"✅ Feature encoder loaded from {feature_encoder_path}")
+        except Exception as e:
+            logger.error(f"❌ Error loading feature_encoder.pkl: {e}", exc_info=True)
+            self.feature_encoder = None
+
+        try:
+            with open(label_encoder_path, 'rb') as f:
+                self.label_encoder = pickle.load(f)
+            logger.info(f"✅ Label encoder loaded from {label_encoder_path}")
+        except Exception as e:
+            logger.error(f"❌ Error loading label_encoder.pkl: {e}", exc_info=True)
+            self.label_encoder = None
 
     def preprocess_features(self, features: Dict[str, Any]) -> pd.DataFrame:
         """Preprocess input features for model prediction"""
