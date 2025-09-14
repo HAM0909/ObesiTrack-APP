@@ -27,6 +27,9 @@ async def get_all_users(
     if search:
         query = query.filter(User.email.ilike(f"%{search}%"))
     
+    # Exclure l'administrateur actuel de la liste
+    query = query.filter(User.id != current_admin.id)
+    
     # Pagination
     offset = (page - 1) * per_page
     users = query.order_by(User.created_at.desc()).offset(offset).limit(per_page).all()

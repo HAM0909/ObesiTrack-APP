@@ -1,0 +1,469 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique des Prédictions - ObesiTrack</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        
+        .main-container {
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #6f42c1, #e83e8c);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 20px;
+            border: none;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .prediction-item {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #2c5aa0;
+            transition: all 0.3s ease;
+        }
+        
+        .prediction-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-category {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        
+        .prediction-date {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .prediction-details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .bmi-badge {
+            background: linear-gradient(135deg, #17a2b8, #6610f2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .confidence-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(to right, #28a745, #20c997);
+            transition: width 0.5s ease;
+        }
+        
+        .risk-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .risk-low { background-color: #d4edda; color: #155724; }
+        .risk-moderate { background-color: #fff3cd; color: #856404; }
+        .risk-high { background-color: #f8d7da; color: #721c24; }
+        .risk-critical { background-color: #721c24; color: white; }
+        
+        .pagination {
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .page-link {
+            border-radius: 10px;
+            margin: 0 5px;
+            border: none;
+            color: #2c5aa0;
+        }
+        
+        .page-link:hover {
+            background-color: #2c5aa0;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .filters {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .btn-filter {
+            border-radius: 20px;
+            margin: 2px;
+            border: 2px solid #e9ecef;
+            background: white;
+            color: #495057;
+        }
+        
+        .btn-filter.active {
+            background: #2c5aa0;
+            color: white;
+            border-color: #2c5aa0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-chart-line"></i> ObesiTrack</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/history">Historique</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin" id="admin-link" style="display: none;">Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="logout-link">Déconnexion</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="text-center mb-5">
+            <h1 class="text-white">Historique des prédictions de l'utilisateur</h1>
+            <p class="text-white-50">Retrouvez ici l'historique complet des prédictions pour cet utilisateur.</p>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="row mb-4" id="statsSection">
+            <!-- Statistics will be loaded here -->
+        </div>
+
+        <div class="row">
+            <!-- Predictions List -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>Dernières Prédictions</h5>
+                        <div class="d-flex align-items-center">
+                            <label for="itemsPerPage" class="form-label me-2 mb-0 text-white">Par page:</label>
+                            <select id="itemsPerPage" class="form-select form-select-sm" style="width: 70px;">
+                                <option value="5">5</option>
+                                <option value="10" selected>10</option>
+                                <option value="20">20</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="predictionsContainer" class="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <nav id="pagination" class="d-none" aria-label="Page navigation">
+                            <ul class="pagination"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Répartition des Catégories</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>Évolution de l'IMC</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="bmiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Fetch user info to check for admin status
+            fetch('/api/v1/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(response => response.json())
+            .then(user => {
+                if (user.is_admin) {
+                    document.getElementById('admin-link').style.display = 'block';
+                }
+            });
+
+            document.getElementById('logout-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                localStorage.removeItem('accessToken');
+                window.location.href = '/login';
+            });
+
+            // Fetch and display prediction history
+            const userId = new URLSearchParams(window.location.search).get('user_id');
+            if (userId) {
+                fetch(`/api/v1/admin/users/${userId}/predictions`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    renderPredictions(data);
+                    renderCharts(data);
+                    renderStats(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching prediction history:', error);
+                    document.getElementById('predictionsContainer').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Erreur lors du chargement de l'historique.</p></div>';
+                });
+            } else {
+                document.getElementById('predictionsContainer').innerHTML = '<div class="empty-state"><i class="fas fa-user-times"></i><p>Aucun utilisateur spécifié.</p></div>';
+            }
+        });
+
+        function renderPredictions(predictions) {
+            const container = document.getElementById('predictionsContainer');
+            if (predictions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-box-open"></i><p>Aucune prédiction trouvée pour cet utilisateur.</p></div>';
+                return;
+            }
+
+            const predictionsHTML = predictions.map(p => `
+                <div class="prediction-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="prediction-category">${p.prediction}</div>
+                            <div class="prediction-date">${new Date(p.created_at).toLocaleString()}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="bmi-badge">IMC: ${p.bmi.toFixed(2)}</div>
+                            <div class="risk-badge risk-${p.risk_level.toLowerCase()}">${p.risk_level}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = predictionsHTML;
+            container.classList.remove('loading');
+        }
+
+        function renderCharts(predictions) {
+            // Category Distribution Chart
+            const categoryCounts = predictions.reduce((acc, p) => {
+                acc[p.prediction] = (acc[p.prediction] || 0) + 1;
+                return acc;
+            }, {});
+
+            const categoryChartCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryCounts),
+                    datasets: [{
+                        data: Object.values(categoryCounts),
+                        backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+
+            // BMI Evolution Chart
+            const bmiData = predictions.map(p => ({
+                x: new Date(p.created_at),
+                y: p.bmi
+            })).sort((a, b) => a.x - b.x);
+
+            const bmiChartCtx = document.getElementById('bmiChart').getContext('2d');
+            new Chart(bmiChartCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'IMC',
+                        data: bmiData,
+                        borderColor: '#6f42c1',
+                        backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderStats(predictions) {
+            const statsSection = document.getElementById('statsSection');
+            if (predictions.length === 0) {
+                statsSection.innerHTML = '';
+                return;
+            }
+
+            const totalPredictions = predictions.length;
+            const avgConfidence = predictions.reduce((acc, p) => acc + (p.probability || 0), 0) / totalPredictions;
+            const lastBMI = predictions[0].bmi;
+            const firstPredictionDate = new Date(predictions[predictions.length - 1].created_at);
+            const daysSinceFirst = Math.ceil((new Date() - firstPredictionDate) / (1000 * 60 * 60 * 24));
+
+            statsSection.innerHTML = `
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number">${totalPredictions}</div>
+                        <div>Prédictions totales</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #fd7e14, #e83e8c);">
+                        <div class="stats-number">${(avgConfidence * 100).toFixed(0)}%</div>
+                        <div>Confiance moyenne</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                        <div class="stats-number">${lastBMI.toFixed(2)}</div>
+                        <div>Dernier IMC</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card" style="background: linear-gradient(135deg, #17a2b8, #6610f2);">
+                        <div class="stats-number">${daysSinceFirst}</div>
+                        <div>Jours de suivi</div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

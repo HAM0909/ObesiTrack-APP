@@ -7,7 +7,8 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, JSONResponse
 
 # Load environment variables (load_dotenv() returns True/False but we ignore)
 load_dotenv(dotenv_path=Path(__file__).parent / ".env")  # Explicit path
@@ -55,16 +56,6 @@ except ImportError as e:
 except Exception as e:
     logger.error(f"❌ ML model initialization failed: {e}")
 
-# --- Static Files Setup ---
-STATIC_DIR = PROJECT_ROOT / "static"
-if STATIC_DIR.exists():
-    app.mount(
-        "/static",
-        StaticFiles(directory=str(STATIC_DIR)),
-        name="static",
-    )
-    logger.info(f"✅ Static files mounted from {STATIC_DIR}")
-
 # --- FastAPI App Initialization ---
 app = FastAPI(
     title=os.getenv("APP_NAME", "ObesiTrack"),
@@ -73,6 +64,19 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# --- Static Files Setup ---
+STATIC_DIR = PROJECT_ROOT / "static"
+TEMPLATES_DIR = PROJECT_ROOT / "templates"
+
+app.mount(
+    "/static",
+    StaticFiles(directory=str(STATIC_DIR)),
+    name="static",
+)
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+logger.info(f"✅ Static files mounted from {STATIC_DIR}")
+logger.info(f"✅ Templates configured from {TEMPLATES_DIR}")
 
 # --- CORS Configuration ---
 APP_ORIGINS = [
@@ -91,16 +95,20 @@ app.add_middleware(
 # --- Router Imports (Graceful Failure) ---
 ROUTERS = [
     ("auth", "Authentication"),
-    ("register", "Users"),  # Changed 'users' to 'register'
-    ("prediction", "Predictions"), # Changed 'predictions' to 'prediction'
-    ("metrics", "Dashboard"), # Changed 'dashboard' to 'metrics'
+    ("prediction", "Predictions"),
+    ("metrics", "Dashboard"),
+    ("pages", "Pages"),
 ]
 
 for router_path, tag in ROUTERS:
     try:
         module = __import__(f"app.routers.{router_path}", fromlist=["router"])
-        app.include_router(module.router, prefix=f"/api/{router_path}", tags=[tag])
-        logger.info(f"✅ Router loaded: /api/{router_path}")
+        if router_path == "pages":
+            app.include_router(module.router, tags=[tag])
+            logger.info(f"✅ Router loaded: /{router_path}")
+        else:
+            app.include_router(module.router, prefix=f"/api/{router_path}", tags=[tag])
+            logger.info(f"✅ Router loaded: /api/{router_path}")
     except ImportError as e:
         logger.warning(f"⚠️ Router {router_path} not found: {e}")
     except Exception as e:

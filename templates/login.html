@@ -155,7 +155,7 @@
         <!-- Register Link -->
         <div class="text-center mb-3">
             <p class="mb-2">Pas encore de compte ?</p>
-            <a href="register.html" class="btn btn-outline-secondary w-100">
+            <a href="/register" class="btn btn-outline-secondary w-100">
                 <i class="fas fa-user-plus me-2"></i>Créer un compte
             </a>
         </div>
@@ -200,7 +200,7 @@
             document.querySelector('button[type="submit"]').disabled = true;
             
             try {
-                const response = await fetch('/auth/login', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

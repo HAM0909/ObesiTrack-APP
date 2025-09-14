@@ -5,6 +5,8 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.9
 python-dotenv
-psycopg2-binary
 pydantic-settings
 Jinja2
+SQLAlchemy
+pandas==2.2.2
+scikit-learn==1.5.1
