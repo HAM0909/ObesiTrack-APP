@@ -9,4 +9,4 @@ pydantic-settings
 Jinja2
 SQLAlchemy
 pandas==2.2.2
-scikit-learn==1.5.1
+scikit-learn==1.6.1
