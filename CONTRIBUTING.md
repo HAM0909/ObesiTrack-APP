@@ -989,3 +989,8 @@ By contributing to ObesiTrack, you agree that your contributions will be license
 Thank you for contributing to ObesiTrack! 🎉
 
 Your contributions help make obesity prediction and management more accessible and effective for everyone.
+
+---
+
+**Last Updated**: October 2025  
+**Version**: 1.0.0

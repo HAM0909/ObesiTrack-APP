@@ -1070,3 +1070,8 @@ Each workflow includes:
 - 📈 Monitoring and optimization tips
 
 For additional support, refer to the main [DOCUMENTATION.md](./DOCUMENTATION.md) file or the [GitHub repository](https://github.com/HAM0909/ObesiTrack-APP).
+
+---
+
+**Last Updated**: October 2025  
+**Version**: 1.0.0

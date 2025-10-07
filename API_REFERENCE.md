@@ -1237,6 +1237,6 @@ Import the provided Postman collection for easy API testing:
 
 ---
 
-**Last Updated**: January 2025  
+**Last Updated**: October 2025  
 **API Version**: 1.0.0  
 **Documentation Version**: 1.0.0

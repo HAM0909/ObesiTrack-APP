@@ -496,6 +496,6 @@ alias ot-demo="python create_demo_users.py"
 
 ---
 
-**Last Updated**: January 2025 | **Version**: 1.0.0
+**Last Updated**: October 2025 | **Version**: 1.0.0
 
 *Keep this reference handy for quick lookups during development and deployment!*

@@ -260,8 +260,8 @@ Found a bug or have a feature request? Please check our [CONTRIBUTING.md](./CONT
 
 ---
 
-**Last Updated**: January 19, 2025  
-**Next Release**: v1.1.0 (Target: March 2025)
+**Last Updated**: October 15, 2025  
+**Next Release**: v1.1.0 (Target: Q1 2026)
 
 ---
 
