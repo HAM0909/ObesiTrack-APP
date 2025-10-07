@@ -11,6 +11,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
     
     <style>
         body {
@@ -78,13 +80,26 @@
         }
         
         .prediction-result {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            border-radius: 20px;
-            padding: 30px;
             margin-top: 30px;
-            text-align: center;
             display: none;
+        }
+        
+        .prediction-result .card {
+            background: white;
+        }
+        
+        .prediction-result .card-header {
+            background: linear-gradient(135deg, #2c5aa0, #4a90e2);
+            color: white;
+        }
+        
+        .recommendations .list-group-item {
+            border: none;
+            background: transparent;
+        }
+        
+        .recommendations .fa-check-circle {
+            color: #28a745;
         }
         
         .bmi-indicator {
@@ -170,12 +185,12 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="app_obesity.html">
+                        <a class="nav-link active" href="/app">
                             <i class="fas fa-calculator me-1"></i>Prédiction
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="history.html">
+                        <a class="nav-link" href="/history">
                             <i class="fas fa-history me-1"></i>Historique
                         </a>
                     </li>
@@ -188,10 +203,10 @@
                             <span id="userEmail">Utilisateur</span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="history.html">
+                            <li><a class="dropdown-item" href="/history">
                                 <i class="fas fa-history me-2"></i>Mon historique
                             </a></li>
-                            <li><a class="dropdown-item" href="admin.html" id="adminLink" style="display: none;">
+                            <li><a class="dropdown-item" href="/admin" id="adminLink" style="display: none;">
                                 <i class="fas fa-cogs me-2"></i>Administration
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -231,28 +246,50 @@
                                     <h5 class="text-primary"><i class="fas fa-user me-2"></i>Informations personnelles</h5>
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
+                                    <label for="gender" class="form-label">
+                                        <i class="fas fa-venus-mars me-1"></i>Genre
+                                    </label>
+                                    <select class="form-select" id="gender" name="gender" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="male">Homme</option>
+                                        <option value="female">Femme</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3 mb-3">
                                     <label for="age" class="form-label">
                                         <i class="fas fa-birthday-cake me-1"></i>Âge (années)
                                     </label>
-                                    <input type="number" class="form-control" id="age" min="1" max="120" required>
+                                    <input type="number" class="form-control" id="age" name="age" min="1" max="120" required>
                                     <div class="feature-info">Entre 1 et 120 ans</div>
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label for="height" class="form-label">
-                                        <i class="fas fa-ruler-vertical me-1"></i>Taille (mètres)
+                                        <i class="fas fa-ruler-vertical me-1"></i>Taille (cm)
                                     </label>
-                                    <input type="number" class="form-control" id="height" step="0.01" min="0.5" max="2.5" required>
-                                    <div class="feature-info">Ex: 1.75 pour 1m75</div>
+                                    <input type="number" class="form-control" id="height" name="height" min="50" max="250" required>
+                                    <div class="feature-info">En centimètres</div>
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <label for="weight" class="form-label">
                                         <i class="fas fa-weight me-1"></i>Poids (kg)
                                     </label>
-                                    <input type="number" class="form-control" id="weight" min="20" max="300" required>
-                                    <div class="feature-info">Entre 20 et 300 kg</div>
+                                    <input type="number" class="form-control" id="weight" name="weight" min="20" max="300" required>
+                                    <div class="feature-info">En kilogrammes</div>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="family_history_with_overweight" class="form-label">
+                                        <i class="fas fa-users me-1"></i>Antécédents familiaux de surpoids
+                                    </label>
+                                    <select class="form-select" id="family_history_with_overweight" name="family_history_with_overweight" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="yes">Oui</option>
+                                        <option value="no">Non</option>
+                                    </select>
                                 </div>
                             </div>
 
@@ -266,7 +303,7 @@
                                     <label for="fcvc" class="form-label">
                                         <i class="fas fa-carrot me-1"></i>Consommation de légumes (FCVC)
                                     </label>
-                                    <input type="number" class="form-control" id="fcvc" step="0.1" min="1" max="3" required>
+                                    <input type="number" class="form-control" id="fcvc" name="fcvc" step="0.1" min="1" max="3" required>
                                     <div class="feature-info">1 = Jamais, 2 = Parfois, 3 = Toujours</div>
                                 </div>
                                 
@@ -274,21 +311,40 @@
                                     <label for="ncp" class="form-label">
                                         <i class="fas fa-utensils me-1"></i>Repas principaux/jour (NCP)
                                     </label>
-                                    <input type="number" class="form-control" id="ncp" step="0.1" min="1" max="4" required>
+                                    <input type="number" class="form-control" id="ncp" name="ncp" step="0.1" min="1" max="4" required>
                                     <div class="feature-info">Nombre de repas principaux par jour</div>
                                 </div>
                                 
-                                <div class="col-12 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="caec" class="form-label">
                                         <i class="fas fa-cookie-bite me-1"></i>Grignotage entre les repas
                                     </label>
-                                    <select class="form-select" id="caec" required>
+                                    <select class="form-select" id="caec" name="caec" required>
                                         <option value="">Choisissez...</option>
                                         <option value="no">Jamais</option>
-                                        <option value="Sometimes">Parfois</option>
-                                        <option value="Frequently">Fréquemment</option>
-                                        <option value="Always">Toujours</option>
+                                        <option value="sometimes">Parfois</option>
+                                        <option value="frequently">Fréquemment</option>
+                                        <option value="always">Toujours</option>
                                     </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="favc" class="form-label">
+                                        <i class="fas fa-hamburger me-1"></i>Consommation fréquente d'aliments caloriques
+                                    </label>
+                                    <select class="form-select" id="favc" name="favc" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="yes">Oui</option>
+                                        <option value="no">Non</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="ch2o" class="form-label">
+                                        <i class="fas fa-tint me-1"></i>Consommation d'eau quotidienne
+                                    </label>
+                                    <input type="number" class="form-control" id="ch2o" name="ch2o" step="0.1" min="1" max="3" required>
+                                    <div class="feature-info">1 = Moins d'un litre, 2 = 1-2 litres, 3 = Plus de 2 litres</div>
                                 </div>
                             </div>
 
@@ -302,7 +358,7 @@
                                     <label for="faf" class="form-label">
                                         <i class="fas fa-dumbbell me-1"></i>Fréquence sport/semaine (FAF)
                                     </label>
-                                    <input type="number" class="form-control" id="faf" step="0.1" min="0" max="3" required>
+                                    <input type="number" class="form-control" id="faf" name="faf" step="0.1" min="0" max="3" required>
                                     <div class="feature-info">0 = Jamais, 1 = 1-2 fois, 2 = 2-4 fois, 3 = 4+ fois</div>
                                 </div>
                                 
@@ -310,7 +366,7 @@
                                     <label for="tue" class="form-label">
                                         <i class="fas fa-mobile-alt me-1"></i>Temps écrans/jour (TUE)
                                     </label>
-                                    <input type="number" class="form-control" id="tue" step="0.1" min="0" max="2" required>
+                                    <input type="number" class="form-control" id="tue" name="tue" step="0.1" min="0" max="2" required>
                                     <div class="feature-info">0 = 0-2h, 1 = 3-5h, 2 = Plus de 5h</div>
                                 </div>
                             </div>
@@ -325,26 +381,48 @@
                                     <label for="calc" class="form-label">
                                         <i class="fas fa-wine-glass me-1"></i>Consommation d'alcool
                                     </label>
-                                    <select class="form-select" id="calc" required>
+                                    <select class="form-select" id="calc" name="calc" required>
                                         <option value="">Choisissez...</option>
                                         <option value="no">Jamais</option>
-                                        <option value="Sometimes">Parfois</option>
-                                        <option value="Frequently">Fréquemment</option>
-                                        <option value="Always">Toujours</option>
+                                        <option value="sometimes">Parfois</option>
+                                        <option value="frequently">Fréquemment</option>
+                                        <option value="always">Toujours</option>
                                     </select>
                                 </div>
                                 
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label for="mtrans" class="form-label">
                                         <i class="fas fa-car me-1"></i>Moyen de transport principal
                                     </label>
-                                    <select class="form-select" id="mtrans" required>
+                                    <select class="form-select" id="mtrans" name="mtrans" required>
                                         <option value="">Choisissez...</option>
-                                        <option value="Walking">Marche</option>
-                                        <option value="Bike">Vélo</option>
-                                        <option value="Public_Transportation">Transport public</option>
-                                        <option value="Automobile">Voiture</option>
-                                        <option value="Motorbike">Moto</option>
+                                        <option value="walking">Marche</option>
+                                        <option value="bike">Vélo</option>
+                                        <option value="public_transportation">Transport public</option>
+                                        <option value="automobile">Voiture</option>
+                                        <option value="motorbike">Moto</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="smoke" class="form-label">
+                                        <i class="fas fa-smoking me-1"></i>Habitude de fumer
+                                    </label>
+                                    <select class="form-select" id="smoke" name="smoke" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="yes">Oui</option>
+                                        <option value="no">Non</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="scc" class="form-label">
+                                        <i class="fas fa-calculator me-1"></i>Surveillance des calories
+                                    </label>
+                                    <select class="form-select" id="scc" name="scc" required>
+                                        <option value="">Choisissez...</option>
+                                        <option value="yes">Oui</option>
+                                        <option value="no">Non</option>
                                     </select>
                                 </div>
                             </div>
@@ -417,6 +495,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{{ url_for('static', filename='js/app_obesity.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>

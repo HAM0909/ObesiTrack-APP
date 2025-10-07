@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import logging
@@ -10,7 +10,6 @@ from app.schemas.prediction import (
     PredictionResponse,
     PredictionHistory,
 )
-from app.ml.predictor import load_model
 from app.auth.dependencies import get_current_user
 from app.models import User, Prediction
 from app.ml.predictor import ObesityPredictor
@@ -18,31 +17,27 @@ from app.ml.predictor import ObesityPredictor
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Globals (consider dependency injection for production)
-model = load_model()  # Load at startup
-
 
 @router.post("/predict", response_model=PredictionResponse)
 async def make_prediction(
     input_data: PredictionInput,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PredictionResponse:
     """Make obesity prediction based on input features."""
-    global model
+    model = request.app.state.model
 
-    if not model:
-        logger.warning("Model not loaded at startup. Reloading...")
-        model = load_model()
-        if not model:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Prediction model is not available.",
-            )
+    # Ensure ML model and its underlying estimator are available
+    if (model is None) or (getattr(model, "model", None) is None):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Prediction model is not available. Ensure model assets are loaded.",
+        )
 
     try:
         # Convert input to dict (keys must match model requirements)
-        features = input_data.dict()
+        features = input_data.model_dump()
 
         # Make prediction (ensure model.predict() expects dict format)
         result = model.predict(features)
@@ -56,6 +51,7 @@ async def make_prediction(
             user_id=current_user.id,
             prediction=result["prediction"],
             probability=result["probability"],
+            confidence=result.get("confidence", result["probability"]),  # Store confidence value
             bmi=result["bmi"],
             risk_level=result["risk_level"],
             input_data=features,
@@ -86,6 +82,9 @@ async def make_prediction(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Prediction result misses required field: {str(e)}",
         )
+    except HTTPException as e:
+        # Bubble up HTTPExceptions coming from predictor (e.g., 400 invalid input)
+        raise e
     except Exception as e:
         logger.error(f"Prediction failed: {e}")
         raise HTTPException(
@@ -118,15 +117,13 @@ async def get_prediction_history(
 
 
 @router.get("/model-status")
-async def get_model_status() -> Dict[str, Any]:
+async def get_model_status(request: Request) -> Dict[str, Any]:
     """Check model health and features."""
-    global model
+    model = request.app.state.model
 
     if not model:
-        model = load_model()
-        if not model:
-            logger.warning("Model unavailable despite reloaded attempt.")
-            return {"status": "unavailable"}
+        logger.warning("Model unavailable.")
+        return {"status": "unavailable"}
 
     return {
         "model_loaded": model is not None,

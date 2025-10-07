@@ -8,7 +8,6 @@ import os
 class Settings(BaseSettings):
 
     database_url: str = Field(
-        default="postgresql://postgres:Chah%4015996@localhost:5432/obesittrack",
         env="DATABASE_URL"
     )
 
@@ -32,6 +31,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"
 
 
 settings = Settings()

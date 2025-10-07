@@ -1,94 +1,106 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import json
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
-from app.schemas.auth import LoginRequest, LoginResponse, RegisterResponse
-from app.auth.jwt_handler import verify_password, get_password_hash, create_access_token
+from app.schemas.auth import LoginRequest, LoginResponse
+from app.auth.jwt_handler import create_access_token, get_password_hash, verify_password
 from app.auth.dependencies import get_current_active_user
+from app.templating import templates
 
 router = APIRouter()
 
+@router.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+from app.schemas.auth import RegisterResponse
+
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
-async def register(user: UserCreate, db: Session = Depends(get_db)):
-    """Inscription d'un nouvel utilisateur"""
-    
-    # Vérifier si l'utilisateur existe déjà
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+def register(user: UserCreate, db: Session = Depends(get_db)):
+    try:
+        # Vérifier si l'email ou le nom d'utilisateur existe déjà
+        db_user_by_email = db.query(User).filter(User.email == user.email).first()
+        if db_user_by_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        db_user_by_username = db.query(User).filter(User.username == user.username).first()
+        if db_user_by_username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username already registered"
+            )
+
+        # Créer le nouvel utilisateur
+        hashed_password = get_password_hash(user.password)
+        db_user = User(
+            email=user.email,
+            username=user.username,
+            hashed_password=hashed_password,
+            is_admin=False  # Par défaut, les nouveaux utilisateurs ne sont pas admin
         )
-    
-    # Créer le nouvel utilisateur
-    hashed_password = get_password_hash(user.password)
-    db_user = User(
-        email=user.email,
-        hashed_password=hashed_password,
-        is_admin=False  # Par défaut, les nouveaux utilisateurs ne sont pas admin
-    )
-    
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    
-    return RegisterResponse(
-        user={
-            "id": db_user.id,
-            "email": db_user.email,
-            "is_admin": db_user.is_admin,
-            "created_at": db_user.created_at
-        },
-        message="User registered successfully"
-    )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        
+        user_response = UserResponse(
+            id=db_user.id,
+            email=db_user.email,
+            username=db_user.username,
+            created_at=db_user.created_at,
+            updated_at=db_user.updated_at,
+            is_active=db_user.is_active,
+            is_admin=db_user.is_admin,
+        )
+        return RegisterResponse(user=user_response, message="Registration successful")
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An internal server error occurred: {e}",
+        )
 
 @router.post("/login", response_model=LoginResponse)
-async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-    """Connexion utilisateur"""
-    
-    # Vérifier l'utilisateur
-    user = db.query(User).filter(User.email == login_data.email).first()
+def login(form_data: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == form_data.email).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not verify_password(login_data.password, user.hashed_password):
+
+    password_verified = verify_password(form_data.password, user.hashed_password)
+
+    if not password_verified:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-        )
+        raise HTTPException(status_code=400, detail="Inactive user")
     
-    # Créer le token d'accès
     access_token = create_access_token(data={"sub": user.email})
-    
-    return LoginResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user={
-            "id": user.id,
-            "email": user.email,
-            "is_admin": user.is_admin,
-            "created_at": user.created_at
-        },
-        message="Login successful"
+    user_response = UserResponse(
+        id=user.id,
+        email=user.email,
+        username=user.username,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+        is_active=user.is_active,
+        is_admin=user.is_admin,
     )
+    return LoginResponse(access_token=access_token, token_type="bearer", user=user_response, message="Login successful")
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: User = Depends(get_current_active_user)):
-    """Obtenir les informations de l'utilisateur connecté"""
+def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
-
-@router.post("/logout")
-async def logout():
-    """Déconnexion utilisateur (côté client principalement)"""
-    return {"message": "Logout successful. Please remove the token from client side."}

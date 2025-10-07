@@ -155,11 +155,7 @@
         <!-- Register Link -->
         <div class="text-center mb-3">
             <p class="mb-2">Pas encore de compte ?</p>
-<<<<<<< HEAD
             <a href="/register" class="btn btn-outline-secondary w-100">
-=======
-            <a href="register.html" class="btn btn-outline-secondary w-100">
->>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
                 <i class="fas fa-user-plus me-2"></i>Créer un compte
             </a>
         </div>
@@ -189,7 +185,7 @@
     <script>
         // Vérifier si l'utilisateur est déjà connecté
         if (localStorage.getItem('access_token')) {
-            window.location.href = 'app_obesity.html';
+            window.location.href = '/app';
         }
         
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -204,11 +200,7 @@
             document.querySelector('button[type="submit"]').disabled = true;
             
             try {
-<<<<<<< HEAD
                 const response = await fetch('/api/auth/login', {
-=======
-                const response = await fetch('/auth/login', {
->>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -226,7 +218,7 @@
                     showAlert('Connexion réussie ! Redirection...', 'success');
                     
                     setTimeout(() => {
-                        window.location.href = 'app_obesity.html';
+                        window.location.href = '/app';
                     }, 1500);
                 } else {
                     showAlert(data.detail || 'Erreur de connexion', 'danger');

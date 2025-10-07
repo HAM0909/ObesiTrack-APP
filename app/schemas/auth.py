@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
+from .user import UserResponse
 
 class Token(BaseModel):
     """Schéma pour le token JWT"""
@@ -19,10 +20,10 @@ class LoginResponse(BaseModel):
     """Schéma de réponse pour la connexion"""
     access_token: str
     token_type: str
-    user: dict
+    user: UserResponse
     message: str
 
 class RegisterResponse(BaseModel):
     """Schéma de réponse pour l'inscription"""
-    user: dict
+    user: UserResponse
     message: str

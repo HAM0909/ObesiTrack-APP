@@ -12,9 +12,6 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=True, onupdate=func.now())
 
-    predictions = relationship(
-        "Prediction",
-        back_populates="user",
-        cascade="all, delete-orphan"
-    )
+    predictions = relationship("Prediction", back_populates="user", cascade="all, delete-orphan", lazy="select")

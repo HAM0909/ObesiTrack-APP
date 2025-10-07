@@ -26,13 +26,10 @@ async def get_all_users(
     # Filtrer par email si recherche
     if search:
         query = query.filter(User.email.ilike(f"%{search}%"))
-    
-<<<<<<< HEAD
+
     # Exclure l'administrateur actuel de la liste
     query = query.filter(User.id != current_admin.id)
-    
-=======
->>>>>>> 34b8ed696e9e4848bf9e161c4623c97fb5af4e57
+
     # Pagination
     offset = (page - 1) * per_page
     users = query.order_by(User.created_at.desc()).offset(offset).limit(per_page).all()
@@ -86,7 +83,7 @@ async def update_user(
             )
     
     # Mettre à jour les champs
-    update_data = user_update.dict(exclude_unset=True)
+    update_data = user_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(user, field, value)
     

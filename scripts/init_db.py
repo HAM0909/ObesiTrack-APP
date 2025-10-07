@@ -25,14 +25,13 @@ def create_tables():
             
         # Vérifier la connexion
         with engine.connect() as conn:
-            # Vérifier que les tables existent
+            # Vérifier que les tables existent (SQLite version)
             from sqlalchemy import text
             
             result = conn.execute(text("""
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = 'public'
-                ORDER BY table_name;
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name NOT LIKE 'sqlite_%'
+                ORDER BY name;
             """))
             
             tables = [row[0] for row in result.fetchall()]
